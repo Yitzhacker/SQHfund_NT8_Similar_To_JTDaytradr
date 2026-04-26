@@ -1,0 +1,1 @@
+# SQHfund_NT8_Similar_To_JTDaytradr
