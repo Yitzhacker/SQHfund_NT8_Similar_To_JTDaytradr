@@ -6,17 +6,22 @@ using NinjaTrader.NinjaScript;
 
 namespace NinjaTrader.NinjaScript.BarsTypes
 {
-    public class IsaacJSTick : BarsType
+    public class ChatGPTIsaacJSTick : BarsType
     {
         private int tradeCount;
-        private double currentVolume;
+        private long currentVolume;
 
         protected override void OnStateChange()
         {
             if (State == State.SetDefaults)
             {
-                Name = "IsaacJSTick (True Jigsaw Logic)";
-                BarsPeriod = new BarsPeriod { BarsPeriodType = (BarsPeriodType)100, Value = 100 };
+                Name = "ChatGPTIsaacJSTick (True Jigsaw Logic)";
+                BarsPeriod = new BarsPeriod
+                {
+                    BarsPeriodType = (BarsPeriodType)101,
+                    Value = 100
+                };
+
                 BuiltFrom = BarsPeriodType.Tick;
                 DefaultChartStyle = Gui.Chart.ChartStyleType.CandleStick;
                 DaysToLoad = 3;
@@ -36,11 +41,10 @@ namespace NinjaTrader.NinjaScript.BarsTypes
             double bid,
             double ask)
         {
-            // 🔴 Ignore non-trade updates (best approximation)
+            // Ignore non-trade updates (best approximation)
             if (volume <= 0)
                 return;
 
-            // 🔴 First bar
             if (bars.Count == 0)
             {
                 AddBar(bars, close, close, close, close, time, volume);
@@ -49,7 +53,7 @@ namespace NinjaTrader.NinjaScript.BarsTypes
                 return;
             }
 
-            // 🔴 If bar is complete → start new one
+            // Bar complete → new bar starts on THIS trade
             if (tradeCount == bars.BarsPeriod.Value)
             {
                 AddBar(bars, close, close, close, close, time, volume);
@@ -59,7 +63,6 @@ namespace NinjaTrader.NinjaScript.BarsTypes
                 return;
             }
 
-            // 🔴 Update current bar
             double barHigh = Math.Max(bars.GetHigh(bars.Count - 1), close);
             double barLow = Math.Min(bars.GetLow(bars.Count - 1), close);
 
@@ -75,6 +78,18 @@ namespace NinjaTrader.NinjaScript.BarsTypes
             );
 
             tradeCount++;
+        }
+
+        // ✅ REQUIRED OVERRIDES
+
+        public override void ApplyDefaultValue(BarsPeriod barsPeriod)
+        {
+            barsPeriod.Value = 100;
+        }
+
+        public override void ApplyDefaultBasePeriodValue(BarsPeriod barsPeriod)
+        {
+            barsPeriod.BaseBarsPeriodValue = 1;
         }
 
         public override int GetInitialLookBackDays(BarsPeriod barsPeriod, TradingHours tradingHours, int barsBack)
